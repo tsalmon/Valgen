@@ -90,20 +90,20 @@ public class Valgen
 	return new Valgen(entry,exit) ;
     }
 
-    public static final Valgen rep(Object nfa) {
+    public static final Valgen r(Valgen nfa) {
 	nfa.exit.addEmptyEdge(nfa.entry) ;
         nfa.entry.addEmptyEdge(nfa.exit) ;
 	return nfa ;	
     }
 
-    public static final Valgen g(Object first, Valgen second) {
+    public static final Valgen s(Valgen first, Valgen second) {
 	first.exit.isFinal = false ;
 	second.exit.isFinal = true ;
-	first.exit.addEmptyEdge(second.entirey) ;
+	first.exit.addEmptyEdge(second.entry) ;
 	return new Valgen(first.entry,second.exit) ;
     }
 
-    public static final Valgen or(Object choice1, Object choice2) {
+    public static final Valgen or(Valgen choice1, Valgen choice2) {
 		choice1.exit.isFinal = false ;
 		choice2.exit.isFinal = false ;
 		ValgenState entry = new ValgenState() ;
@@ -128,7 +128,7 @@ public class Valgen
 		}
     }
 
-    public static final Valgen or(Object... rexps) {
+    public static final Valgen o(Object... rexps) {
 		Valgen exp = re(rexps[0]) ;
 		for (int i = 1; i < rexps.length; i++) {
 		    exp = or(exp,re(rexps[i])) ;
@@ -139,7 +139,7 @@ public class Valgen
     public static final Valgen g(Object... rexps) {
 		Valgen exp = e() ;
 		for (int i = 0; i < rexps.length; i++) {
-		    exp = g(exp,re(rexps[i])) ;
+		    exp = s(exp,re(rexps[i])) ;
 		}
 		return exp ;
     }
@@ -152,9 +152,9 @@ public class Valgen
     }
 
     public static void main(String[] args) {
-	Valgen pat = g(rep(or("foo","bar")),"") ;
-	String[] strings = 
-	    { "foo" , "bar" , 
+	Valgen pat = g(r(o("foo","bar")),"") ;
+	String[] strings =
+	    { "foo" , "bar" ,
 	      "foobar", "farboo", "boofar" , "barfoo" ,
 	      "foofoobarfooX" ,
 	      "foofoobarfoo" ,
