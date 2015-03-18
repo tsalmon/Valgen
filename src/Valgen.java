@@ -39,7 +39,7 @@ class ValgenNode{
 	}
 
 	/**
-	 * On appel ValgenNode.matches(String, ArrayList), 
+	 * On appel {@link ValgenNode#matches(String, ArrayList)}, 
 	 * en initialisant visited par un ArrayList vide
 	 * @param s Chaine a verifier
 	 * @return reponse
@@ -48,6 +48,29 @@ class ValgenNode{
 	public boolean matches(String s) {
 		return matches(s,new ArrayList<ValgenNode>()) ;
 	}
+
+	/**
+	 * On appel {@link ValgenNode#generate(String)}, on initialise une chaine vide
+	 * qui sera celle du resultat a retourner
+	 * @return Chaine generée par generate
+	 * @see ValgenNode#generate(ArrayList) generate
+	 */
+	public String generate(){
+		return generate("");
+	}
+
+	/* -------------------------------------------------------------------- */	
+
+	/**
+	 * Tirage booleen
+	 * @return vrai ou faux
+	 */
+	private boolean pile_ou_face(){
+		Random random = new Random();
+		return random.nextBoolean();
+	}
+
+	/* -------------------------------------------------------------------- */	
 
 	/**
 	 * Parcourir les voisins d'un noeud pour verifier qu'une chaine corr
@@ -80,6 +103,27 @@ class ValgenNode{
 			return false ;
 		}
 	}
+
+	/**
+	 * On genere une chaine, qui correspond a un motif aléatoire, reconnaissable par l'automate
+	 * @param visited noeuds deja visite
+	 * @return String correspondant a ce motif
+	 */
+	private String generate(String s){
+		if(isFinal)
+			return s;
+		while(true){ //tant qu'on a pas tiré Vrai au pile ou face on recommence
+			for(int i = 0; i < onChar.length; i++)
+				if(onChar[i].size() > 0)
+					for(int j = 0; j < onChar[i].size(); j++)
+						if(pile_ou_face())
+							return onChar[i].get(j).generate(s + (char)i);												
+			for(int i = 0; i < onEmpty.size(); i++)
+				if(pile_ou_face())
+					return onEmpty.get(i).generate(s);
+		}
+	}
+
 }
 
 /**
@@ -96,6 +140,8 @@ public class Valgen{
 		this.exit  = exit;
 	} 
 
+	/* -------------------------------------------------------------------- */	
+
 	/**
 	 * Verifier qu'une chaine de caratere peut etre reconnue par une expression reguliere , 
 	 * On se contente d'appeler le point d'entrée de l'automate, et d'itéré de voisins en voisins
@@ -109,19 +155,24 @@ public class Valgen{
 		return entry.matches(str);
 	}
 
+	public String generate(){
+		return entry.generate();
+	}
+
 	/**
 	 * Affecte un caractere sur une transition entre deux noeuds
 	 * @param c caractere
 	 * @return la transition avec le caractere
 	 */
 	public static final Valgen c(char c) {
-		System.out.println("c(" + c + ")");
 		ValgenNode entry = new ValgenNode() ;
 		ValgenNode exit = new ValgenNode() ;
 		exit.isFinal = true ;
 		entry.addCharEdge(c,exit) ;
 		return new Valgen(entry,exit) ;
 	}
+
+	/* -------------------------------------------------------------------- */
 
 	/**
 	 * On fabrique un automate simple, constitué de 2 noeuds, relié par une epsilon-transition
@@ -143,7 +194,6 @@ public class Valgen{
 	 * @return un automate Valgen
 	 */
 	private static final Valgen concat(Valgen first, Valgen second) {
-		System.out.println("s");
 		first.exit.isFinal = false ;
 		first.exit.addEmptyEdge(second.entry) ;
 		return new Valgen(first.entry,second.exit) ;
@@ -220,6 +270,8 @@ public class Valgen{
 		return exp;
 	}
 
+	/* -------------------------------------------------------------------- */
+
 	/**
 	 * Facade pour la repetion
 	 * On creer un automate a partir de l'objet rexps, où le final et 
@@ -268,7 +320,8 @@ public class Valgen{
 	}
 
 	public static void main(String[] args) {
-		Valgen pat = group(r(o(group('f','o','o'),o("bar", "aze")))) ;
+
+		Valgen pat = group("foo",o("bar", "foo"), r("6")) ;
 		String[] strings =
 			{ "foo" , "bar" ,
 				"foobar", "farboo", "boofar" , "barfoo" ,
@@ -278,8 +331,11 @@ public class Valgen{
 				"aaa",
 				"a"
 			} ;
-		for (String s : strings) {
-			System.out.println(s + "\t:\t" +pat.matches(s)) ;
+		for(int i = 0; i < 10; i++){
+			System.out.println("--> " + pat.generate());
 		}
+		//for (String s : strings) {
+		//	System.out.println(s + "\t:\t" +pat.matches(s)) ;
+		//}
 	}
 }
