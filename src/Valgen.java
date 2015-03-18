@@ -110,17 +110,20 @@ class ValgenNode{
 	 * @return String correspondant a ce motif
 	 */
 	private String generate(String s){
-		if(isFinal)
-			return s;
 		while(true){ //tant qu'on a pas tiré Vrai au pile ou face on recommence
 			for(int i = 0; i < onChar.length; i++)
 				if(onChar[i].size() > 0)
-					for(int j = 0; j < onChar[i].size(); j++)
-						if(pile_ou_face())
-							return onChar[i].get(j).generate(s + (char)i);												
+					for(int j = 0; j < onChar[i].size(); j++){
+						if(pile_ou_face()){
+							return onChar[i].get(j).generate(s + (char)i);
+						}
+					}
 			for(int i = 0; i < onEmpty.size(); i++)
-				if(pile_ou_face())
+				if(pile_ou_face()){
 					return onEmpty.get(i).generate(s);
+				}
+			if(isFinal && pile_ou_face())				
+				return s;
 		}
 	}
 
@@ -323,19 +326,21 @@ public class Valgen{
 
 		Valgen pat = group("foo",o("bar", "foo"), r("6")) ;
 		String[] strings =
-			{ "foo" , "bar" ,
-				"foobar", "farboo", "boofar" , "barfoo" ,
-				"foofoobarfooX" ,
-				"foofoobarfoomdr" ,
-				"foofoobarmdr",
-				"aaa",
-				"a"
+			{ "foo" , 
+			"bar" ,
+			"foofoo",
+			"foobar",
+			"foobar6",
+			"foofoo6",
+			"foofoofoo",
+			"foofoo66666"
 			} ;
 		for(int i = 0; i < 10; i++){
 			System.out.println("--> " + pat.generate());
 		}
-		//for (String s : strings) {
-		//	System.out.println(s + "\t:\t" +pat.matches(s)) ;
-		//}
+		System.out.println("------------");
+		for (String s : strings) {
+			System.out.println(s + "\t:\t" +pat.matches(s)) ;
+		}
 	}
 }
