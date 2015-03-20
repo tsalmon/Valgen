@@ -1,1 +1,3 @@
 AlgoText/
+*.class
+.DS_Store
