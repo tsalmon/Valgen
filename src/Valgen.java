@@ -1,4 +1,5 @@
 import java.util.* ;
+import java.lang.Math;
 
 /**
  * 
@@ -11,6 +12,7 @@ class ValgenNode{
 	public static final int MAX_CHAR = 255 ;
 
 	public boolean isFinal                 = false ;
+	private LinkedList<Character> allChar = new LinkedList<Character>();
 	@SuppressWarnings("unchecked")
 	private ArrayList<ValgenNode>[] onChar = new ArrayList[MAX_CHAR] ;
 	private ArrayList<ValgenNode> onEmpty  = new ArrayList<ValgenNode>() ;
@@ -22,6 +24,9 @@ class ValgenNode{
 	 * @see ArrayList#add(Object) add 
 	 */
 	public void addCharEdge(char c, ValgenNode next) {
+		if(allChar.indexOf(c) == -1){
+			allChar.add(c);
+		}		
 		onChar[c].add(next) ;
 	}
 
@@ -111,13 +116,15 @@ class ValgenNode{
 	 */
 	private String generate(String s){
 		while(true){ //tant qu'on a pas tiré Vrai au pile ou face on recommence
-			for(int i = 0; i < onChar.length; i++)
-				if(onChar[i].size() > 0)
-					for(int j = 0; j < onChar[i].size(); j++){
+			for(int i = 0; i < onChar.length; i++){
+				int length = onChar[i].size();
+				if(length > 0)
+					for(int j = 0; j < length; j++){
 						if(pile_ou_face()){
 							return onChar[i].get(j).generate(s + (char)i);
 						}
 					}
+			}
 			for(int i = 0; i < onEmpty.size(); i++)
 				if(pile_ou_face()){
 					return onEmpty.get(i).generate(s);
@@ -273,6 +280,14 @@ public class Valgen{
 		return exp;
 	}
 
+	private static final Valgen macro_generate(int chr_begin, int chr_end){
+		Object[] l = new Object[chr_end - chr_begin + 1];
+		for (int i = chr_begin; i < chr_end + 1; i++) {
+			l[i-chr_begin] = (char)i;
+		}
+		return loop(0, l);
+	}
+
 	/* -------------------------------------------------------------------- */
 
 	/**
@@ -322,8 +337,63 @@ public class Valgen{
 		}
 	}
 
-	public static void main(String[] args) {
+	/*------MACRO----------*/
 
+	/**
+	* Repeter une fois ou plus
+	*/
+	public static final Valgen p(Object regexp){
+		return r(regexp);
+	}
+
+	/**
+	* @return A | ... | Z
+	*/
+	public static final Valgen maj(){
+		return macro_generate(65, 90);
+	}
+
+	/**
+	* @return a | ... | z
+	*/
+	public static final Valgen min(){
+		return macro_generate(97, 122);
+	}
+
+	/**
+	* @return 0 | ... | 9
+	*/
+	public static final Valgen num(){
+		return macro_generate(47, 57);
+	}
+
+	/**
+	* @return .
+	*/
+	public static final Valgen any(){
+		return macro_generate(1, 254);
+	}
+
+	/**
+	* @return A | ... | Z | a | ... | z
+	*/
+	public static final Valgen letter(){
+		return o(maj(), min());
+	}
+
+	/**
+	* @return A | ... | Z | a | ... | z | 0 | ... | 9
+	*/
+	public static final Valgen alphanum(){
+		return o(min(), maj(), num());
+	}
+
+	public static final Valgen mail(){
+		return group(p(o(alphanum(), "_.+-")), '@', p(o(alphanum(), '-')), '.', p(o(alphanum(), "-.")));
+	}
+
+
+	public static void main(String[] args) {
 		Valgen pat = group("foo",o("bar", "foo"), r("6")) ;
 		String[] strings =
 			{ "foo" , 
