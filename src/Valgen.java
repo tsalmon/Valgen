@@ -12,9 +12,8 @@ class ValgenNode{
 	public static final int MAX_CHAR = 255 ;
 
 	public boolean isFinal                 = false ;
-	private LinkedList<Character> allChar = new LinkedList<Character>();
 	@SuppressWarnings("unchecked")
-	private ArrayList<ValgenNode>[] onChar = new ArrayList[MAX_CHAR] ;
+	private ValgenNode[] onChar = new ValgenNode[MAX_CHAR] ;
 	private ArrayList<ValgenNode> onEmpty  = new ArrayList<ValgenNode>() ;
 
 	/**
@@ -24,10 +23,8 @@ class ValgenNode{
 	 * @see ArrayList#add(Object) add 
 	 */
 	public void addCharEdge(char c, ValgenNode next) {
-		if(allChar.indexOf(c) == -1){
-			allChar.add(c);
-		}		
-		onChar[c].add(next) ;
+		if(onChar[(int)c] == null)
+			onChar[(int)c] = next ;
 	}
 
 	/**
@@ -39,8 +36,6 @@ class ValgenNode{
 	}
 
 	public ValgenNode () {
-		for (int i = 0; i < onChar.length; i++)
-			onChar[i] = new ArrayList<ValgenNode>() ;
 	}
 
 	/**
@@ -97,9 +92,12 @@ class ValgenNode{
 			return false ;
 		} else { //recursion tant que s non vide, on lui retire la premiere lettre a chaque fois qu'on match
 			int c = (int)s.charAt(0) ;
-			for (ValgenNode next : onChar[c]) { // transition avec valeur
+			/*for (ValgenNode next : onChar[c]) { // transition avec valeur
 				if (next.matches(s.substring(1)))
 					return true ;
+			}*/
+			if(onChar[(int)c] != null && onChar[(int)c].matches(s.substring(1))){
+				return true;
 			}
 			for (ValgenNode next : onEmpty) { // epsilon-transition
 				if (next.matches(s,visited))
@@ -117,13 +115,11 @@ class ValgenNode{
 	private String generate(String s){
 		while(true){ //tant qu'on a pas tiré Vrai au pile ou face on recommence
 			for(int i = 0; i < onChar.length; i++){
-				int length = onChar[i].size();
-				if(length > 0)
-					for(int j = 0; j < length; j++){
-						if(pile_ou_face()){
-							return onChar[i].get(j).generate(s + (char)i);
-						}
+				if(onChar[i] != null){
+					if(pile_ou_face()){
+							return onChar[i].generate(s + (char)i);
 					}
+				}
 			}
 			for(int i = 0; i < onEmpty.size(); i++)
 				if(pile_ou_face()){
@@ -347,21 +343,21 @@ public class Valgen{
 	}
 
 	/**
-	* @return A | ... | Z
+	* @return [A-Z]
 	*/
 	public static final Valgen maj(){
 		return macro_generate(65, 90);
 	}
 
 	/**
-	* @return a | ... | z
+	* @return [a-z]
 	*/
 	public static final Valgen min(){
 		return macro_generate(97, 122);
 	}
 
 	/**
-	* @return 0 | ... | 9
+	* @return [0-9]
 	*/
 	public static final Valgen num(){
 		return macro_generate(47, 57);
@@ -375,19 +371,22 @@ public class Valgen{
 	}
 
 	/**
-	* @return A | ... | Z | a | ... | z
+	* @return [A-Za-z0-9]
 	*/
 	public static final Valgen letter(){
 		return o(maj(), min());
 	}
 
 	/**
-	* @return A | ... | Z | a | ... | z | 0 | ... | 9
+	* @return [A-Za-z0-9]
 	*/
 	public static final Valgen alphanum(){
 		return o(min(), maj(), num());
 	}
 
+	/**
+	* @return [a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+
+	*/
 	public static final Valgen mail(){
 		return group(p(o(alphanum(), "_.+-")), '@', p(o(alphanum(), '-')), '.', p(o(alphanum(), "-.")));
 	}
